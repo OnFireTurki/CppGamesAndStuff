@@ -7,7 +7,7 @@
 #define ai "X"
 #define SIZE 3
 
-typedef std::array<std::array<std::string, SIZE>, SIZE> XOboard;
+typedef std::array<std::string, SIZE* SIZE> XOboard;
 
 
 std::unordered_map<std::string, int> s = {
@@ -23,7 +23,7 @@ XOboard InitBoard() {
 	int n = 0;
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			board[i][j] = std::to_string(++n);
+			board[i + j * SIZE] = std::to_string(++n);
 		}
 	}
 	return board;
@@ -32,7 +32,7 @@ XOboard InitBoard() {
 void printboard(XOboard& x) {
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			std::cout << x[i][j] << "  ";
+			std::cout << x[i+j*3] << "  ";
 		}
 		std::cout << std::endl;
 	}
@@ -41,8 +41,8 @@ void printboard(XOboard& x) {
 bool makemove(XOboard& x, std::string& player, std::string& move) {
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			if (x[i][j] == move) {
-				x[i][j] = player;
+			if (x[i + j * SIZE] == move) {
+				x[i + j * SIZE] = player;
 				return true;
 			}
 		}
@@ -56,7 +56,7 @@ int checkEmpty(XOboard& x) {
 	int res = 0;
 	for (int i = 0; i < SIZE; i++)
 		for (int j = 0; j < SIZE; j++)
-			if (x[i][j] != "O" && x[i][j] != "X")
+			if (x[i + j * SIZE] != "O" && x[i + j * SIZE] != "X")
 				res++;
 	return res;
 }
@@ -65,11 +65,11 @@ std::string checkwinner(XOboard& board) {
 	std::string a[2] = { {"O"}, {"X"} };
 	for (std::string player : a) {
 		for (int i = 0; i < SIZE; i++) {
-			if ((board[i][0] == player && board[i][1] == player && board[i][2] == player) || (board[0][i] == player && board[1][i] == player && board[2][i] == player)) {
+			if ((board[i] == player && board[i + 1 * SIZE] == player && board[i + 2 * SIZE] == player) || (board[i * SIZE] == player && board[1 + i * SIZE] == player && board[2 + i * SIZE] == player)) {
 				return player;
 			}
 		}
-		if ((board[0][0] == player && board[1][1] == player && board[2][2] == player) || (board[2][0] == player && board[1][1] == player && board[0][2] == player)) {
+		if ((board[0] == player && board[1 + 1 * SIZE] == player && board[2 + 2 * SIZE] == player) || (board[2] == player && board[1 + 1 * SIZE] == player && board[2 * SIZE] == player)) {
 			return player;
 		}
 	}
@@ -94,11 +94,11 @@ int minimax(XOboard& x, int depth, int alpha, int beta, bool maximizing) {
 				if (!continue_)
 					break;
 				for (int j = 0; j < SIZE; j++) {
-					if (x[i][j] != "O" && x[i][j] != "X") {
-						std::string temp = x[i][j];
-						x[i][j] = p;
+					if (x[i + j * SIZE] != "O" && x[i + j * SIZE] != "X") {
+						std::string temp = x[i + j * SIZE];
+						x[i + j * SIZE] = p;
 						int attemptresult = minimax(x, depth + 1, alpha, beta, 0);
-						x[i][j] = temp;
+						x[i + j * SIZE] = temp;
 						res = (std::max(res, attemptresult));
 						alpha = std::max(attemptresult, alpha);
 						if (beta <= alpha) {
@@ -117,11 +117,11 @@ int minimax(XOboard& x, int depth, int alpha, int beta, bool maximizing) {
 				if (!continue_)
 					break;
 				for (int j = 0; j < SIZE; j++) {
-					if (x[i][j] != "O" && x[i][j] != "X") {
-						std::string temp = x[i][j];
-						x[i][j] = p;
+					if (x[i + j * SIZE] != "O" && x[i + j * SIZE] != "X") {
+						std::string temp = x[i + j * SIZE];
+						x[i + j * SIZE] = p;
 						int attemptresult = minimax(x, depth + 1, alpha, beta, 1);
-						x[i][j] = temp;
+						x[i + j * SIZE] = temp;
 						res = std::min(res, attemptresult);
 						beta = std::min(attemptresult, beta);
 						if (beta <= alpha) {
@@ -142,11 +142,11 @@ void Aimove(XOboard& x, int movenum) {
 	std::pair<int, int> move = { -1, -1 };
 	for (int i = 0; i < SIZE; i++) {
 		for (int j = 0; j < SIZE; j++) {
-			if (x[i][j] != "O" && x[i][j] != "X") {
-				std::string temp = x[i][j];
-				x[i][j] = ai;
+			if (x[i + j * SIZE] != "O" && x[i + j * SIZE] != "X") {
+				std::string temp = x[i + j * SIZE];
+				x[i + j * SIZE] = ai;
 				int attemptresult = minimax(x, movenum + 1, INT_MIN, INT_MAX, 0);
-				x[i][j] = temp;
+				x[i + j * SIZE] = temp;
 				if (attemptresult > res) {
 					res = attemptresult;
 					move.first = i;
@@ -156,7 +156,7 @@ void Aimove(XOboard& x, int movenum) {
 		}
 	}
 	if (move.first >= 0 && move.second >= 0)
-		x[move.first][move.second] = ai;
+		x[move.first + move.second * SIZE] = ai;
 }
 
 int main()
